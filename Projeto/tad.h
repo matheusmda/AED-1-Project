@@ -18,4 +18,4 @@ void liberaLista(lista* l); // Eu quero isso aqui? Ou deixo encapsulado no tad.c
 
 void inserirTipo(lista* l, char tip[max+1]);
 
-void inserirRemedio(lista* l, char rem[max+1], char preco[10+1], int quat_estoque, int exigencia_receita, char tipoMed[max+1]);
+void inserirRemedio(lista* l, char rem[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]);
