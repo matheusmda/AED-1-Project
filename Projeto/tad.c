@@ -21,9 +21,8 @@ struct lista{
     int numElem_Tipos;
 };
 
-lista* criaLista();
-
 // FUNÇÕES LOCAIS - ENCAPSULADAS ~ PRIVATE
+lista* criaLista();
 void criaEstoquePadraoTipoRemedio(lista* l);
 void criaEstoquePadraoRemedio(lista* l);
 void inserirTipo(lista* l, char tip[max+1]);
@@ -34,13 +33,18 @@ int tipoExiste(lista* l, char tipoMed[max+1]);
 void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao);
 med* ultimoElemMed(tipo* tipo_de_remedio, med* medicacao);
 void liberaLista(lista* l);
+void menuCascata(lista* l, int contMenuPrincipal);
+void submenu(lista* l, tipo* tipo_de_remedio, int contMenuPrincipal);
+void menuInfo(lista* l, med* medicacao, int contMenuPrincipal);
 
-void menuPrincipal(){
+void menuPrincipal(int contMenuPrincipal){
+    contMenuPrincipal++;
+    system("clear");
     printf("=========================================================================================\n");
     printf("\n\t\tSeja bem vindo ao Sistema de Controle de Estoque!\n\n");
     printf("Por favor, selecione a opção desejada:\n\n");
-    printf("1 - Buscar Produto.\n");
-    printf("2 - Pesquisar Produto.\n");
+    printf("1 - Buscar Medicamento.\n");
+    printf("2 - Pesquisar Medicamento.\n");
     printf("3 - Sair.\n");
     printf("=========================================================================================\n");
 
@@ -52,7 +56,7 @@ void menuPrincipal(){
     if(input == 1){
         criaEstoquePadraoTipoRemedio(l);
         criaEstoquePadraoRemedio(l);
-        menuCascata(); // IMPLEMENTAR
+        menuCascata(l, contMenuPrincipal);
     }
     else if(input == 2){
         // chama a função pesquisar produto via string de busca
@@ -143,8 +147,8 @@ void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao){
         tipo_de_remedio->inicio_lista_med = medicacao;
     }
     else{
-        med* temp = ultimoElemMed(tipo_de_remedio, medicacao);
-        temp->next = medicacao;
+        med* tempMed = ultimoElemMed(tipo_de_remedio, medicacao);
+        tempMed->next = medicacao;
     }
 }
 
@@ -185,11 +189,97 @@ tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]){
     }
 }
 
-void menuCascata(){
+void menuCascata(lista* l, int contMenuPrincipal){
+    system("clear");
+    tipo* tempTipo = l->inicio_listaTipo;
+    printf("Selecione o tipo de medicação desejado:\n");
+    int i;
+    for(i = 1;tempTipo != NULL;i++){
+        printf("%d - %s\n", i, tempTipo->tip);
+        tempTipo = tempTipo->next;
+    }
+    printf("0 - Voltar ao Menu Principal\n");
 
+    int input;
+    scanf("%d", &input);
+
+    tempTipo = l->inicio_listaTipo;
+    for(i = 1;tempTipo != NULL;i++){
+        if(i == input){
+            submenu(l, tempTipo, contMenuPrincipal);
+        }
+        tempTipo = tempTipo->next;
+    }
+}
+
+void submenu(lista* l, tipo* tipo_de_remedio, int contMenuPrincipal){
+    system("clear");
+    med* tempMed = tipo_de_remedio->inicio_lista_med;
+    printf("Selecione o %s desejado:\n", tipo_de_remedio->tip);
+    int i;
+    for(i = 1;tempMed != NULL;i++){
+        printf("%d - %s\n", i, tempMed->nome_med);
+        tempMed = tempMed->next;
+    }
+    printf("0 - Voltar ao Menu Principal\n");
+
+    int input;
+    scanf("%d", &input);
+
+    if(input == 0){
+        menuPrincipal(contMenuPrincipal);
+    }
+    tempMed = tipo_de_remedio->inicio_lista_med;
+    for(i = 1;tempMed != NULL;i++){
+        if(i == input){
+            menuInfo(l, tempMed, contMenuPrincipal);
+        }
+        tempMed = tempMed->next;
+    }
+}
+
+void menuInfo(lista* l, med* medicacao, int contMenuPrincipal){
+    system("clear");
+    printf("\t\tInformações e Opções do medicamento:\n\n");
+    printf("Medicamento: %s\n", medicacao->nome_med);
+    printf("Preço: R$ %s\n", medicacao->preco);
+    printf("Quantidade em Estoque: %d\n", medicacao->quant_estoque);
+    printf("Tipo de medicamento: %s\n", medicacao->tipoMed);
+    if(medicacao->exigencia_receita == 1){
+        printf("Exige Receita Médica? - SIM\n");
+    }
+    else{
+        printf("Exige Receita Médica? - NÃO\n");
+    }
+    printf("\n");
+    printf("1 - Solicitar Reposição de Estoque\n");
+    printf("0 - Voltar ao Menu Principal\n");
+
+    int input;
+    scanf("%d", &input);
+
+    if(input == 0){
+        menuPrincipal(contMenuPrincipal);
+    }
+    if(input == 1){
+        if(medicacao->quant_estoque > 10){
+            printf("\nREPOSIÇÃO NÃO PERMITIDA!\n");
+            printf("A resposição de estoque só é permitida caso a quantidade do medicamento em estoque seja 10 ou menos!\n");
+        }
+        else{
+            printf("Por favor, digite quantos medicamentos deseja reestocar:\n");
+            scanf("%d", &input);
+            medicacao->quant_estoque = medicacao->quant_estoque + input;
+            printf("MEDICAMENTO REESTOCADO!\n\nNova quantidade em estoque: %d\n", medicacao->quant_estoque);
+        }
+    }
 }
 
 void liberaLista(lista* l){
+    if(l->inicio_listaTipo == NULL){
+        return;
+    }
+
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
 
