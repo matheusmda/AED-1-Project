@@ -1,7 +1,7 @@
 #include "tad.h"
 
 struct remedio {
-    char rem[max+1];
+    char nome_med[max+1];
     char preco[10+1];
     int quant_estoque;
     int exigencia_receita; // 0 para não, 1 para sim
@@ -10,9 +10,9 @@ struct remedio {
 };
 
 struct tipo_remedio {
-    char tip[max+1]; // ver depois a possibilidade de fazer um ponteiro para remedio aqui, tendo um "vetor de remédios" de um tipo só
-    tipo* next; // dentro de cada tipo eu teria todos os remédios em estoque dentro deste tipo
-    med* inicio_lista_de_remedios_deste_tipo;
+    char tip[max+1];
+    tipo* next;
+    med* inicio_lista_med;
     int numElem_Meds;
 };
 
@@ -21,15 +21,17 @@ struct lista{
     int numElem_Tipos;
 };
 
+lista* criaLista();
+
 // FUNÇÕES LOCAIS - ENCAPSULADAS ~ PRIVATE
 void criaEstoquePadraoTipoRemedio(lista* l);
 void criaEstoquePadraoRemedio(lista* l);
 void inserirTipo(lista* l, char tip[max+1]);
-void inserirRemedio(lista* l, char rem[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]);
+void inserirRemedio(lista* l, char nome_med[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]);
 tipo* ultimoElemTipo(lista* l);
 tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]);
 int tipoExiste(lista* l, char tipoMed[max+1]);
-void inserirMed_na_lista_especifica(tipo* tipo_de_remedio, med* medicacao);
+void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao);
 med* ultimoElemMed(tipo* tipo_de_remedio, med* medicacao);
 void liberaLista(lista* l);
 
@@ -90,54 +92,55 @@ void criaEstoquePadraoRemedio(lista* l){
 
 // Função local para inserir um nó na lista de Tipos de medicamentos
 void inserirTipo(lista* l, char tip[max+1]){
-    tipo* tipo_de_remedio = (tipo*) malloc(sizeof(tipo));
-    strcpy(tipo_de_remedio->tip, tip);
-    tipo_de_remedio->inicio_lista_de_remedios_deste_tipo = NULL;
-    tipo_de_remedio->numElem_Meds = 0;
+    tipo* novo_tipo = (tipo*) malloc(sizeof(tipo));
+    strcpy(novo_tipo->tip, tip);
+    novo_tipo->inicio_lista_med = NULL;
+    novo_tipo->numElem_Meds = 0;
+    novo_tipo->next = NULL;
     
     if(l->numElem_Tipos == 0){
-        l->inicio_listaTipo = tipo_de_remedio;
+        l->inicio_listaTipo = novo_tipo;
         l->numElem_Tipos++;
     }
     else{
         tipo* ultimo = ultimoElemTipo(l);
-        ultimo->next = tipo_de_remedio;
+        ultimo->next = novo_tipo;
         l->numElem_Tipos++;
     }
 }
 
 // Função local para retornar último elemento da lista de tipos de remédio
 tipo* ultimoElemTipo(lista* l){
-    tipo* temp = l->inicio_listaTipo;
-    while(temp->next != NULL){
-        temp = temp->next;
+    tipo* tempTipo = l->inicio_listaTipo;
+    while(tempTipo->next != NULL){
+        tempTipo = tempTipo->next;
     }
-    return temp;
+    return tempTipo;
 }
 
 // Função local para inserir um Remedio em sua lista especifica de acordo com seu Tipo
-void inserirRemedio(lista* l, char rem[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]){
-    med* medicacao = (med*) malloc(sizeof(med));
-    strcpy(medicacao->rem, rem);
-    strcpy(medicacao->preco, preco);
-    medicacao->quant_estoque = quant_estoque;
-    medicacao->exigencia_receita = exigencia_receita;
-    strcpy(medicacao->tipoMed, tipoMed);
+void inserirRemedio(lista* l, char nome_med[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]){
+    med* novo_med = (med*) malloc(sizeof(med));
+    strcpy(novo_med->nome_med, nome_med);
+    strcpy(novo_med->preco, preco);
+    novo_med->quant_estoque = quant_estoque;
+    novo_med->exigencia_receita = exigencia_receita;
+    strcpy(novo_med->tipoMed, tipoMed);
 
     int check = tipoExiste(l, tipoMed);
     if(check == 0){
         inserirTipo(l, tipoMed);
     }
 
-    tipo* temp = NoTipoEspecifico(l, tipoMed);
-    inserirMed_na_lista_especifica(temp, medicacao);
-    temp->numElem_Meds++;
+    tipo* tempTipo = NoTipoEspecifico(l, tipoMed);
+    inserirMed_na_lista(tempTipo, novo_med);
+    tempTipo->numElem_Meds++;
 }
 
 // Função local auxiliar da função inserirRemedio usada para inserir remedio na sua respectiva lista
-void inserirMed_na_lista_especifica(tipo* tipo_de_remedio, med* medicacao){
-    if(tipo_de_remedio->inicio_lista_de_remedios_deste_tipo == NULL){
-        tipo_de_remedio->inicio_lista_de_remedios_deste_tipo = medicacao;
+void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao){
+    if(tipo_de_remedio->inicio_lista_med == NULL){
+        tipo_de_remedio->inicio_lista_med = medicacao;
     }
     else{
         med* temp = ultimoElemMed(tipo_de_remedio, medicacao);
@@ -145,23 +148,23 @@ void inserirMed_na_lista_especifica(tipo* tipo_de_remedio, med* medicacao){
     }
 }
 
-// Função local auxiliar da função inserirMed_na_lista_especifica
+// Função local auxiliar da função inserirMed_na_lista
 med* ultimoElemMed(tipo* tipo_de_remedio, med* medicacao){
-    med* temp = tipo_de_remedio->inicio_lista_de_remedios_deste_tipo;
-    for(int i = 1;i < tipo_de_remedio->numElem_Meds;i++){
-        temp = temp->next;
+    med* tempMed = tipo_de_remedio->inicio_lista_med;
+    while(tempMed->next != NULL){
+        tempMed = tempMed->next;
     }
-    return temp;
+    return tempMed;
 }
 
 // Função local para retornar 1 se o tipo especificado de medicamento existe e 0 caso não exista no sistema.
 int tipoExiste(lista* l, char tipoMed[max+1]){
-    tipo* temp = l->inicio_listaTipo;
-    for(int i = 0;strcmp(temp->tip, tipoMed) != 0 && i < l->numElem_Tipos;i++){
-        temp = temp->next;
+    tipo* tempTipo = l->inicio_listaTipo;
+    for(int i = 0;strcmp(tempTipo->tip, tipoMed) != 0 && i < l->numElem_Tipos;i++){
+        tempTipo = tempTipo->next;
     }
 
-    if(strcmp(temp->tip, tipoMed) == 0)
+    if(strcmp(tempTipo->tip, tipoMed) == 0)
         return 1;
     else
         return 0;
@@ -169,12 +172,12 @@ int tipoExiste(lista* l, char tipoMed[max+1]){
 
 // Função local para retornar o nó do tipo de medicamento especificado
 tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]){
-    tipo* temp = l->inicio_listaTipo;
-    for(int i = 0;strcmp(temp->tip, tipoMed) != 0 && i < l->numElem_Tipos != NULL;i++){
-        temp = temp->next;
+    tipo* tempTipo = l->inicio_listaTipo;
+    for(int i = 0;strcmp(tempTipo->tip, tipoMed) != 0 && i < l->numElem_Tipos;i++){
+        tempTipo = tempTipo->next;
     }
-    if(strcmp(temp->tip, tipoMed) == 0){
-        return temp;
+    if(strcmp(tempTipo->tip, tipoMed) == 0){
+        return tempTipo;
     }
     else{
         printf("Tipo de medicamento especificado não existe em estoque!\n");
@@ -188,7 +191,7 @@ void menuCascata(){
 
 void liberaLista(lista* l){
     tipo* tempTipo = l->inicio_listaTipo;
-    med* tempMed = tempTipo->inicio_lista_de_remedios_deste_tipo;
+    med* tempMed = tempTipo->inicio_lista_med;
 
     for(int j = 0;j < l->numElem_Tipos;j++){
         for(int i = 0;i < tempTipo->numElem_Meds;i++){
