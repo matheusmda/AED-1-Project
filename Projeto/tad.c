@@ -35,7 +35,7 @@ void liberaLista(lista* l);
 void menuCascata(lista* l, int contMenuPrincipal);
 void submenu(lista* l, tipo* tipo_de_remedio, int contMenuPrincipal);
 void menuInfo(lista* l, med* medicacao, int contMenuPrincipal);
-void pesquisarProduto(lista* l, int contMenuPrincipal, char nome_med[max+1]);
+void pesquisarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
 
 // Função do Menu Principal do Programa
 void menuPrincipal(int contMenuPrincipal, lista* l){
@@ -46,6 +46,7 @@ void menuPrincipal(int contMenuPrincipal, lista* l){
     printf("Por favor, selecione a opção desejada:\n\n");
     printf("1 - Buscar Medicamento.\n");
     printf("2 - Pesquisar Medicamento.\n");
+    // printf("2 - Pesquisar Medicamento.\n"); ////// JÇLJdfçlkjadsçlkfjadlskçfjasdlçfjadslçfjLJADSLKÇFJASDLÇFJASDLÇKFJASDÇLFJADSL
     printf("3 - Sair.\n");
     printf("=========================================================================================\n");
 
@@ -64,7 +65,7 @@ void menuPrincipal(int contMenuPrincipal, lista* l){
         char nome_med[max+1];
         printf("Digite o medicamento que deseja pesquisar:\n");
         scanf("%s", nome_med);
-        pesquisarProduto(l, contMenuPrincipal, nome_med);
+        pesquisarMedicamento(l, contMenuPrincipal, nome_med);
     }
     else if(input == 3){
         liberaLista(l);
@@ -277,7 +278,7 @@ void menuInfo(lista* l, med* medicacao, int contMenuPrincipal){
             system("clear");
             printf("\n\t\t\t\t***REPOSIÇÃO RECUSADA!***\n\n");
             printf("A resposição de estoque só é permitida caso a quantidade do medicamento em estoque seja 10 ou menos!\n\n");
-            printf("2 - Voltar às informações do medicamento buscado\n");
+            printf("2 - Voltar as informações do medicamento buscado\n");
             printf("0 - Voltar ao Menu Principal\n\n");
             scanf("%d", &entrada);
             if(entrada == 2){
@@ -294,7 +295,7 @@ void menuInfo(lista* l, med* medicacao, int contMenuPrincipal){
             medicacao->quant_estoque = medicacao->quant_estoque + input;
             system("clear");
             printf("\n\t\t\t\t***MEDICAMENTO REESTOCADO!***\n\nNova quantidade em estoque: %d\n", medicacao->quant_estoque);
-            printf("2 - Voltar às informações do medicamento buscado\n");
+            printf("2 - Voltar as informações do medicamento buscado\n");
             printf("0 - Voltar ao Menu Principal\n");
             
             scanf("%d", &entrada);
@@ -309,20 +310,41 @@ void menuInfo(lista* l, med* medicacao, int contMenuPrincipal){
 }
 
 // Função para pesquisar produto diretamente via string de busca
-void pesquisarProduto(lista* l, int contMenuPrincipal, char nome_med[max+1]){
+void pesquisarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
+    int aux = 0;
 
     while(tempTipo != NULL){
         while(tempMed != NULL){
+            if(strcmp(nome_med, tempMed->nome_med) == 0){
+                aux = 1;
+                menuInfo(l, tempMed, contMenuPrincipal);
+                break;
+            }
             tempMed = tempMed->next;
         }
+        if(aux == 1) break;
         tempTipo = tempTipo->next;
         if(tempTipo == NULL) break;
         tempMed = tempTipo->inicio_lista_med;
     }
 
+    if(aux == 0){
+        system("clear");
+        printf("\n\t--> MEDICAMENTO BUSCADO NÃO EXISTE EM ESTOQUE! <--\n\n\n");
+        printf("0 - Voltar ao Menu Principal\n\n");
+        int input;
+        scanf("%d", &input);
+        if(input == 0){
+            menuPrincipal(contMenuPrincipal, l);
+        }
+        else{
+            menuPrincipal(contMenuPrincipal, l);
+        }
+    }
 }
+
 // Função para desalocar memória
 void liberaLista(lista* l){
     if(l->inicio_listaTipo == NULL){
