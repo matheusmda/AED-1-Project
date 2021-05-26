@@ -1,0 +1,14 @@
+Notas: São exatamente 01:20 do dia 26/0 e, aparantemente, o programa está pronto. Falta apenas refinar algumas coisas como:
+
+-> Legibilidade do código:
+	Nome de funções
+	Nome de variáveis
+	Comentários
+	Espaçamento
+	Identação
+
+-> Interface gráfica:
+	Espaçamento de linhas e palavras
+	Margens
+	Gramática
+	Figuras
