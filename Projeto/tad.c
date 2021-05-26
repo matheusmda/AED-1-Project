@@ -18,7 +18,7 @@ struct tipo_remedio {
 
 struct lista{
     tipo* inicio_listaTipo;
-    int numElem_Tipos;
+    int numElem_Tipos; // eu tiraria isso daqui
 };
 
 // FUNÇÕES LOCAIS - ENCAPSULADAS ~ PRIVATE
@@ -39,6 +39,8 @@ void pesquisarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
 void removerMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
 void deletarMedicamento(lista* l, med* medicacao, tipo* tipo_de_remedio);
 void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
+void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
+void retirarDuplicata(lista* l, char tipoMed[max+1], char nome_med[max+1]);
 
 // Função do Menu Principal do Programa
 void menuPrincipal(int contMenuPrincipal, lista* l){
@@ -85,7 +87,10 @@ void menuPrincipal(int contMenuPrincipal, lista* l){
         adicionarMedicamento(l, contMenuPrincipal, nome_med);
     }
     else if(input == 5){
-        // alterar medicamento --------------------------------------------------------------- FALTA SO ISSO AQUI ----------------------------------------------------
+        char nome_med[max+1];
+        printf("Digite o nome do medicamento que deseja alterar:\n\n");
+        scanf("%s", nome_med);
+        alterarMedicamento(l, contMenuPrincipal, nome_med);
     }
     else if(input == 6){
         liberaLista(l);
@@ -100,7 +105,7 @@ void menuPrincipal(int contMenuPrincipal, lista* l){
 lista* criaLista(){
     lista* l = (lista*) malloc(sizeof(lista));
     l->inicio_listaTipo = NULL;
-    l->numElem_Tipos = 0;
+    l->numElem_Tipos = 0; // simplesmente deixaria de existir
     
     return l;
 }
@@ -131,14 +136,14 @@ void inserirTipo(lista* l, char tip[max+1]){
     novo_tipo->numElem_Meds = 0;
     novo_tipo->next = NULL;
     
-    if(l->numElem_Tipos == 0){
+    if(l->numElem_Tipos == 0){ // trocaria por l->inicio_listaTipo == NULL
         l->inicio_listaTipo = novo_tipo;
-        l->numElem_Tipos++;
+        l->numElem_Tipos++; // deixaria de existir
     }
     else{
         tipo* ultimo = ultimoElemTipo(l);
         ultimo->next = novo_tipo;
-        l->numElem_Tipos++;
+        l->numElem_Tipos++; // deixaria de existir
     }
 }
 
@@ -197,7 +202,6 @@ int tipoExiste(lista* l, char tipoMed[max+1]){
         tempTipo = tempTipo->next;
     }
     if(strcmp(tempTipo->tip, tipoMed) == 0){
-        // printf("OH MY GOD!!\n"); É BEM AQUI AKLDJFÇLKASDJFKÇLADSJFKLDÇAJDKL  ADÇSFJALSDKFJDASKLFJADKLSFJAÇKLSDFJAKLÇFJALSÇKDFJAÇSDKLFJÇADSLKFJADSÇLFKJADSLFKAJDSÇFKLAJFADSLFKJ
         return 1;
     }
     else{
@@ -208,7 +212,7 @@ int tipoExiste(lista* l, char tipoMed[max+1]){
 // Função local para retornar o nó do tipo de medicamento especificado
 tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
-    for(int i = 0;strcmp(tempTipo->tip, tipoMed) != 0 && i < l->numElem_Tipos;i++){
+    for(int i = 0;strcmp(tempTipo->tip, tipoMed) != 0 && i < l->numElem_Tipos && tempTipo->next ;i++){ // ARRUMAR ESSE TREM AQUI!! PRA NÃO PRECISAR USAR MAIS numElem!!
         tempTipo = tempTipo->next;
     }
     if(strcmp(tempTipo->tip, tipoMed) == 0){
@@ -491,11 +495,11 @@ void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
         inserirRemedio(l, nome_med, preco, quant_estoque, exigencia_receita, tipoMed);
 
         system("clear");
-        printf("=============================================================================\n");
+        printf("===================================================================================\n");
         printf("\n\t\t-----Novo medicamento inserido em estoque com sucesso!!-----\n\n\n");
         printf("2 - Ver informações do remédio adicionado\n");
         printf("0 - Voltar ao Menu Principal\n");
-        printf("=============================================================================\n");
+        printf("===================================================================================\n");
         int input;
         scanf("%d", &input);
 
@@ -508,6 +512,152 @@ void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
         else{
             menuPrincipal(contMenuPrincipal, l);
         }
+    }
+}
+
+// Função para alterar dados de um medicamento já existente no estoque
+void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
+    tipo* tempTipo = l->inicio_listaTipo;
+    med* tempMed = tempTipo->inicio_lista_med;
+    int aux = 0;
+
+    while(tempTipo != NULL){
+        while(tempMed != NULL){
+            if(strcmp(nome_med, tempMed->nome_med) == 0){
+                aux = 1;
+                system("clear");
+                printf("===================================================================================\n");
+                printf("\nPor favor, selecione o campo do medicamento que deseja alterar: \n\n\n");
+
+                printf("1 - Nome\n");
+                printf("2 - Preço\n");
+                printf("3 - Quantidade em estoque\n");
+                printf("4 - Exigência de receita médica\n");
+                printf("5 - Tipo de medicamento\n");
+                printf("===================================================================================\n");
+
+                int campo;
+                scanf("%d", &campo);
+
+                if(campo == 1){
+                    printf("Nome do medicamento: ");
+                    char nome[max+1];
+                    scanf("%s", nome);
+                    strcpy(tempMed->nome_med, nome);
+                }
+                else if(campo == 2){
+                    printf("Preço: ");
+                    char preco[11];
+                    scanf("%s", preco);
+                    strcpy(tempMed->preco, preco);
+                }
+                else if(campo == 3){
+                    printf("Quantidade de medicamentos: ");
+                    int quant_estoque;
+                    scanf("%d", &quant_estoque);
+                    tempMed->quant_estoque = quant_estoque;
+                }
+                else if(campo == 4){
+                    printf("*O campo 'Exigência de Receita' deve ser preenchido com 0 para não e 1 para sim\n\n\n");
+                    printf("Exigência de Receita: ");
+                    int exigencia_receita;
+                    scanf("%d", &exigencia_receita);
+                    tempMed->exigencia_receita = exigencia_receita;
+                }
+                else if(campo == 5){
+                    printf("Tipo de medicamento: ");
+                    char tipoMed[max+1];
+                    scanf("%s", tipoMed);
+                    int existe = tipoExiste(l, tipoMed);
+                    if(existe == 0){
+                        inserirTipo(l, tipoMed);
+                    }
+
+                    // Vou usar essa string auxiliar para retirar o medicamento da lista em que ele está
+                    char stringAuxTipoMed[max+1];
+                    strcpy(stringAuxTipoMed, tempMed->tipoMed);
+
+                    strcpy(tempMed->tipoMed, tipoMed);
+                    tipo* tempTipo = NoTipoEspecifico(l, tipoMed);
+                    inserirMed_na_lista(tempTipo, tempMed); // Colocando o medicamento na lista em qual ele deve passar a pertencer!!
+                    tempTipo->numElem_Meds++;
+
+                    // Retirar a duplicata do medicamento do antigo tipo a qual pertencia!
+                    retirarDuplicata(l, stringAuxTipoMed, tempMed->nome_med);
+                }
+                else{
+                    printf("\n\t\t***OPÇÃO INVÁLIDA!!***\n");
+                    printf("\nPor favor, digite uma opção válida!!\n\n");
+                    printf("Digite 1 para tentar novamente: ");
+                    int input;
+                    scanf("%d", &input);
+                    if(input == 1){
+                        alterarMedicamento(l, contMenuPrincipal, nome_med);
+                    }
+                    else{
+                        alterarMedicamento(l, contMenuPrincipal, nome_med);
+                    }
+                }
+
+                system("clear");
+                printf("=============================================================================\n");
+                printf("\n\t\t-----Medicamento alterado com sucesso!!-----\n\n\n");
+                printf("2 - Ver informações do remédio alterado\n");
+                printf("0 - Voltar ao Menu Principal\n");
+                printf("=============================================================================\n");
+                int input;
+                scanf("%d", &input);
+
+                if(input == 2){
+                    pesquisarMedicamento(l, contMenuPrincipal, tempMed->nome_med);
+                }
+                else if(input == 0){
+                    menuPrincipal(contMenuPrincipal, l);
+                }
+                else{
+                    menuPrincipal(contMenuPrincipal, l);
+                }
+
+            }
+            tempMed = tempMed->next;
+        }
+        if(aux == 1) break;
+        tempTipo = tempTipo->next;
+        if(tempTipo == NULL) break;
+        tempMed = tempTipo->inicio_lista_med;
+    }
+
+    if(aux == 0){
+        system("clear");
+        printf("\n\t--> MEDICAMENTO BUSCADO NÃO EXISTE EM ESTOQUE! <--\n\n\n");
+        printf("0 - Voltar ao Menu Principal\n\n");
+        int input;
+        scanf("%d", &input);
+        if(input == 0){
+            menuPrincipal(contMenuPrincipal, l);
+        }
+        else{
+            menuPrincipal(contMenuPrincipal, l);
+        }
+    }
+}
+
+// Função auxiliar da função alterarMedicamento usada para retirar medicamento duplicado em dois tipos diferentes!!
+void retirarDuplicata(lista* l, char tipoMed[max+1], char nome_med[max+1]){
+    tipo* tempTipo = l->inicio_listaTipo;
+    med* tempMed = tempTipo->inicio_lista_med;
+
+    while(tempTipo != NULL){
+        if(strcmp(tempTipo->tip, tipoMed) == 0){
+            while(tempMed != NULL){
+                if(strcmp(tempMed->nome_med, nome_med) == 0){
+                    deletarMedicamento(l, tempMed, tempTipo);
+                    return;
+                }
+                tempMed = tempMed->next;
+            }
+        }
+        tempTipo = tempTipo->next;
     }
 }
 
