@@ -1,14 +1,17 @@
-Notas: São exatamente 01:20 do dia 26/0 e, aparantemente, o programa está pronto. Falta apenas refinar algumas coisas como:
+Notas: São exatamente 20:30 do dia 27/05/2021 e o programa está pronto e já foi apresentado.
 
--> Legibilidade do código:
-	Nome de funções
-	Nome de variáveis
-	Comentários
-	Espaçamento
-	Identação
+Alguns comentários sobre limitações e futuras melhorias:
 
--> Interface gráfica:
-	Espaçamento de linhas e palavras
-	Margens
-	Gramática
-	Figuras
+1 - O que pode melhorar:
+
+-> Tratamento de erros, entradas impróprias etc.
+
+-> Interface mais amigável, mais bonita
+
+-> Código mais limpo, com menos linhas
+
+2 - Limitações:
+
+-> Tempo
+
+-> Trabalho em grupo feito individualmente
