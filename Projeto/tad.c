@@ -1,5 +1,9 @@
 #include "tad.h"
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                TADS
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct remedio {
     char nome_med[max+1];
     char preco[10+1];
@@ -19,29 +23,45 @@ struct lista{
     tipo* inicio_listaTipo;
 };
 
-// FUNÇÕES LOCAIS - ENCAPSULADAS ~ PRIVATE
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                               FUNÇÕES LOCAIS - ENCAPSULADAS ~ PRIVATE.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// BACK-END
 void criaEstoquePadraoTipoRemedio(lista* l);
 void criaEstoquePadraoRemedio(lista* l);
 void inserirTipo(lista* l, char tip[max+1]);
-void inserirRemedio(lista* l, char nome_med[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]);
+void inserirMedicamento(lista* l, char nome_med[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]);
 tipo* ultimoElemTipo(lista* l);
 tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]);
 int tipoExiste(lista* l, char tipoMed[max+1]);
 void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao);
 med* ultimoElemMed(tipo* tipo_de_remedio, med* medicacao);
 void liberaLista(lista* l);
+void deletarMedicamento(lista* l, med* medicacao, tipo* tipo_de_remedio);
+void retirarDuplicata(lista* l, char tipoMed[max+1], char nome_med[max+1]);
+
+// FRONT-END
 void menuCascata(lista* l, int contMenuPrincipal);
 void submenu(lista* l, tipo* tipo_de_remedio, int contMenuPrincipal);
 void menuInfo(lista* l, med* medicacao, int contMenuPrincipal);
 void pesquisarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
 void removerMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
-void deletarMedicamento(lista* l, med* medicacao, tipo* tipo_de_remedio);
 void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
 void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]);
-void retirarDuplicata(lista* l, char tipoMed[max+1], char nome_med[max+1]);
 void alterarMedicamentoSucesso(lista* l, int contMenuPrincipal, char nome_med[max+1]);
+void repoRecusada(lista* l, med* medicacao, int contMenuPrincipal);
+void repoSucesso(lista* l, med* medicacao, int contMenuPrincipal);
 
-// Função do Menu Principal do Programa
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                      IMPLEMENTAÇÃO DAS FUNÇÕES.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                        FRONT-END  -  Função do Menu Principal do Programa.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void menuPrincipal(int contMenuPrincipal, lista* l){
     contMenuPrincipal++;
     system("clear");
@@ -104,13 +124,15 @@ void menuPrincipal(int contMenuPrincipal, lista* l){
     else if(input == 6){
         liberaLista(l);
         system("clear");
-        printf("\n\n\t\t--------- SISTEMA ENCERRADO ---------\n\n\n");
-        printf("Muito Obrigado! :)\n");
+        printf("\n\n\t\t--------- SISTEMA ENCERRADO ---------\n\n\n\n\n");
+        printf("Muito Obrigado! :)\n\n");
         return;
     }
 }
 
-// Função para inicializar a lista
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                      Função para inicializar a lista.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 lista* criaLista(){
     lista* l = (lista*) malloc(sizeof(lista));
     l->inicio_listaTipo = NULL;
@@ -118,25 +140,31 @@ lista* criaLista(){
     return l;
 }
 
-// Função Local para criar nosso "Estoque Atual" ou "Estoque existente"
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                     BACK-END  -  Função para criar nosso "Estoque Atual" ou "Estoque existente" -> TIPOS.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void criaEstoquePadraoTipoRemedio(lista* l){
     inserirTipo(l, "Analgesico");
     inserirTipo(l, "Anfetamina");
     inserirTipo(l, "Antiacido");
 }
 
-// Função Local para criar nosso "Estoque Atual" ou "Estoque existente"
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                BACK-END  -  Função Local para criar nosso "Estoque Atual" ou "Estoque existente" -> MEDICAMENTOS.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void criaEstoquePadraoRemedio(lista* l){
-    inserirRemedio(l, "Paracetamol", "12,00", 80, 0, "Analgesico");
-    inserirRemedio(l, "Dipirona", "4,50", 9, 0, "Analgesico");
+    inserirMedicamento(l, "Paracetamol", "12,00", 80, 0, "Analgesico");
+    inserirMedicamento(l, "Dipirona", "4,50", 9, 0, "Analgesico");
 
-    inserirRemedio(l, "Venvanse", "257,00", 94, 1, "Anfetamina");
-    inserirRemedio(l, "Ritalina", "40,00", 50, 1, "Anfetamina");
+    inserirMedicamento(l, "Venvanse", "257,00", 94, 1, "Anfetamina");
+    inserirMedicamento(l, "Ritalina", "40,00", 50, 1, "Anfetamina");
 
-    inserirRemedio(l, "Engov", "5,35", 320, 0, "Antiacido");
+    inserirMedicamento(l, "Engov", "5,35", 320, 0, "Antiacido");
 }
 
-// Função local para inserir um nó na lista de Tipos de medicamentos
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                 BACK-END  -  Função para inserir um nó (tipo) na lista de Tipos de medicamentos.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void inserirTipo(lista* l, char tip[max+1]){
     tipo* novo_tipo = (tipo*) malloc(sizeof(tipo));
     strcpy(novo_tipo->tip, tip);
@@ -152,7 +180,9 @@ void inserirTipo(lista* l, char tip[max+1]){
     }
 }
 
-// Função local para retornar último elemento da lista de tipos de remédio
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                BACK-END  -  Função para retornar último elemento da lista de tipos de remédio.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 tipo* ultimoElemTipo(lista* l){
     tipo* tempTipo = l->inicio_listaTipo;
     while(tempTipo->next != NULL){
@@ -161,8 +191,10 @@ tipo* ultimoElemTipo(lista* l){
     return tempTipo;
 }
 
-// Função local para inserir um Remedio em sua lista especifica de acordo com seu Tipo
-void inserirRemedio(lista* l, char nome_med[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]){
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                       BACK-END  -  Função para inserir um Remedio em sua lista especifica de acordo com seu Tipo.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void inserirMedicamento(lista* l, char nome_med[max+1], char preco[10+1], int quant_estoque, int exigencia_receita, char tipoMed[max+1]){
     med* novo_med = (med*) malloc(sizeof(med));
     strcpy(novo_med->nome_med, nome_med);
     strcpy(novo_med->preco, preco);
@@ -179,7 +211,9 @@ void inserirRemedio(lista* l, char nome_med[max+1], char preco[10+1], int quant_
     inserirMed_na_lista(tempTipo, novo_med);
 }
 
-// Função local auxiliar da função inserirRemedio usada para inserir remedio na sua respectiva lista
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                    BACK-END  -  Função auxiliar da função inserirMedicamento usada para inserir remedio na sua respectiva lista.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao){
     if(tipo_de_remedio->inicio_lista_med == NULL){
         tipo_de_remedio->inicio_lista_med = medicacao;
@@ -190,7 +224,9 @@ void inserirMed_na_lista(tipo* tipo_de_remedio, med* medicacao){
     }
 }
 
-// Função local auxiliar da função inserirMed_na_lista para retornar o último elemento da lista de medicamentos do tipo especificado
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                    BACK-END  -  Função auxiliar da função inserirMed_na_lista para retornar o último elemento da lista de medicamentos do tipo especificado.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 med* ultimoElemMed(tipo* tipo_de_remedio, med* medicacao){
     med* tempMed = tipo_de_remedio->inicio_lista_med;
     while(tempMed->next != NULL){
@@ -199,7 +235,9 @@ med* ultimoElemMed(tipo* tipo_de_remedio, med* medicacao){
     return tempMed;
 }
 
-// Função local para retornar 1 se o tipo especificado de medicamento existe e 0 caso não exista no sistema.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                              BACK-END  -  Função para retornar 1 se o tipo especificado de medicamento existe e 0 caso não exista no sistema.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int tipoExiste(lista* l, char tipoMed[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     while(strcmp(tempTipo->tip, tipoMed) != 0 && tempTipo->next != NULL){
@@ -213,15 +251,18 @@ int tipoExiste(lista* l, char tipoMed[max+1]){
     }
 }
 
-// Função local para retornar o nó do tipo de medicamento especificado
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                            BACK-END  -  Função para retornar o nó do tipo de medicamento especificado.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     while(strcmp(tempTipo->tip, tipoMed) != 0 && tempTipo != NULL){
         tempTipo = tempTipo->next;
     }
     if(tempTipo == NULL){
-        printf("Tipo de medicamento especificado não existe em estoque!\n");
-        printf("Digite 1 para continuar a execução do programa\n");
+        printf("\n\t\t**MEDICAMENTO ESPECIFICADO NÃO EXISTE EM ESTOQUE**\n\n\n\n");
+        printf("Digite 1 para continuar a execução do programa\n\n");
+        printf("--> ");
         int input;
         scanf("%d", &input);
         if(input == 1){
@@ -233,7 +274,9 @@ tipo* NoTipoEspecifico(lista* l, char tipoMed[max+1]){
     }
 }
 
-// Menu que disponibiliza lista de tipos de remédio para seleção
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                          FRONT-END  -  Menu que disponibiliza lista de tipos de remédio para seleção.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void menuCascata(lista* l, int contMenuPrincipal){
     system("clear");
     tipo* tempTipo = l->inicio_listaTipo;
@@ -263,7 +306,9 @@ void menuCascata(lista* l, int contMenuPrincipal){
     }
 }
 
-// Menu que disponibiliza lista de remédios (do tipo selecionado no menu anterior) para seleção
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                 FRONT-END  -  Menu que disponibiliza lista de remédios (do tipo selecionado no menu anterior) para seleção.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void submenu(lista* l, tipo* tipo_de_remedio, int contMenuPrincipal){
     system("clear");
     med* tempMed = tipo_de_remedio->inicio_lista_med;
@@ -296,13 +341,14 @@ void submenu(lista* l, tipo* tipo_de_remedio, int contMenuPrincipal){
     }
 }
 
-// Menu que disponibiliza informações e opções do medicamento selecionado
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                         FRONT-END  -  Menu que disponibiliza informações e opções do medicamento selecionado.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void menuInfo(lista* l, med* medicacao, int contMenuPrincipal){
     system("clear");
     printf("\t\tInformações e Opções do medicamento:\n\n\n");
     printf("\t  %s\n", medicacao->nome_med);
     printf("--------------------------------\n");
-    // printf("Medicamento: %s\n", medicacao->nome_med);
     printf("Preço: R$%s\n", medicacao->preco);
     printf("Quantidade em Estoque: %d\n", medicacao->quant_estoque);
     printf("Tipo de Medicamento: %s\n", medicacao->tipoMed);
@@ -326,50 +372,71 @@ void menuInfo(lista* l, med* medicacao, int contMenuPrincipal){
     }
     if(input == 1){
         if(medicacao->quant_estoque > 10){
-            system("clear");
-            printf("\n\t\t\t\t***REPOSIÇÃO RECUSADA***\n\n");
-            printf("-----------------------------------------\n");
-            printf("A resposição de estoque só é permitida\ncaso a quantidade do medicamento\nem estoque seja 10 ou menos!\n");
-            printf("-----------------------------------------\n\n");
-            printf("2 - Voltar as informações do medicamento buscado\n");
-            printf("0 - Voltar ao Menu Principal\n");
-            printf("=====================================\n");
-            printf("Opção: ");
-            scanf("%d", &entrada);
-            if(entrada == 2){
-                menuInfo(l, medicacao, contMenuPrincipal);
-            }
-            else if(entrada == 0){
-                menuPrincipal(contMenuPrincipal, l);
-            }         
+            repoRecusada(l, medicacao, contMenuPrincipal);
         }
         else{
             system("clear");
             printf("Por favor, digite a quantidade de '%s' que deseja adicionar ao estoque:\n\n", medicacao->nome_med);
             printf("--> ");
+
+            int input;
             scanf("%d", &input);
-            medicacao->quant_estoque = medicacao->quant_estoque + input;
-            system("clear");
-            printf("\n\t\t\t\t***MEDICAMENTO REESTOCADO!***\n\n\n\nNova quantidade em estoque: %d\n", medicacao->quant_estoque);
-            printf("-------------------------------\n\n\n");
-            printf("==================================================\n");
-            printf(" 2 - Voltar as informações do medicamento buscado\n");
-            printf(" 0 - Voltar ao Menu Principal\n");
-            printf("==================================================\n");
-            printf("Opção: ");
-            
-            scanf("%d", &entrada);
-            if(entrada == 2){
-                menuInfo(l, medicacao, contMenuPrincipal);
-            }
-            else if(entrada == 0){
-                menuPrincipal(contMenuPrincipal, l);
-            }
+            medicacao->quant_estoque += input;
+            repoSucesso(l, medicacao, contMenuPrincipal);
         }
     }
 }
 
-// Função para pesquisar produto diretamente via string de busca
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                             FRONT-END  -  Função auxiliar da função menuInfo usada para tela de Reposição Recusada.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void repoRecusada(lista* l, med* medicacao, int contMenuPrincipal){
+    system("clear");
+    printf("\n\t\t\t\t***REPOSIÇÃO RECUSADA***\n\n");
+    printf("-----------------------------------------\n");
+    printf("A resposição de estoque só é permitida\ncaso a quantidade do medicamento\nem estoque seja 10 ou menos!\n");
+    printf("-----------------------------------------\n\n");
+    printf("2 - Voltar as informações do medicamento buscado\n");
+    printf("0 - Voltar ao Menu Principal\n");
+    printf("=====================================\n");
+    printf("Opção: ");
+    int entrada;
+    scanf("%d", &entrada);
+    if(entrada == 2){
+        menuInfo(l, medicacao, contMenuPrincipal);
+    }
+    else if(entrada == 0){
+        menuPrincipal(contMenuPrincipal, l);
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                       FRONT-END  -  Função auxiliar da função repoAceita para tela de medicamento reestocado com sucesso!
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void repoSucesso(lista* l, med* medicacao, int contMenuPrincipal){
+    system("clear");
+    printf("\n\t\t\t\t***MEDICAMENTO REESTOCADO!***\n\n\n\nNova quantidade em estoque: %d\n", medicacao->quant_estoque);
+    printf("-------------------------------\n\n\n");
+    printf("==================================================\n");
+    printf(" 2 - Voltar as informações do medicamento buscado\n");
+    printf(" 0 - Voltar ao Menu Principal\n");
+    printf("==================================================\n");
+    printf("Opção: ");
+    
+    int entrada;
+    scanf("%d", &entrada);
+
+    if(entrada == 2){
+        menuInfo(l, medicacao, contMenuPrincipal);
+    }
+    else if(entrada == 0){
+        menuPrincipal(contMenuPrincipal, l);
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                 FRONT-END  -  Função para pesquisar produto diretamente via string de busca.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void pesquisarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
@@ -403,13 +470,12 @@ void pesquisarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
         if(input == 0){
             menuPrincipal(contMenuPrincipal, l);
         }
-        else{
-            menuPrincipal(contMenuPrincipal, l);
-        }
     }
 }
 
-// Função para remover medicamento do estoque
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                         FRONT-END  -  Função para remover medicamento do estoque.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void removerMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
@@ -429,9 +495,6 @@ void removerMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
                 int input;
                 scanf("%d", &input);
                 if(input == 0){
-                    menuPrincipal(contMenuPrincipal, l);
-                }
-                else{
                     menuPrincipal(contMenuPrincipal, l);
                 }
                 break;
@@ -457,29 +520,41 @@ void removerMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
         if(input == 0){
             menuPrincipal(contMenuPrincipal, l);
         }
-        else{
-            menuPrincipal(contMenuPrincipal, l);
-        }
     }
 }
 
-// Função para efetivamente deletar medicamento na lista (Função auxiliar da função acima - removerMedicamento)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                             BACK-END  -  Função para efetivamente deletar medicamento na lista (Função auxiliar da função acima - removerMedicamento).
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void deletarMedicamento(lista* l, med* medicacao, tipo* tipo_de_remedio){
     med* tempMed = tipo_de_remedio->inicio_lista_med;
 
-    while(tempMed->next != medicacao){
-        if(tempMed == medicacao){
+    if(medicacao == tipo_de_remedio->inicio_lista_med){
+        if(tempMed->next == NULL){
             free(medicacao);
             tipo_de_remedio->inicio_lista_med = NULL;
             return;
         }
-        tempMed = tempMed->next;
+        else{
+            tipo_de_remedio->inicio_lista_med = medicacao->next;
+            free(medicacao);
+            return;
+        }
     }
-    tempMed->next = medicacao->next;
-    free(medicacao);
+    else{
+        while(tempMed->next != medicacao){
+            tempMed = tempMed->next;
+        }
+        
+        tempMed->next = medicacao->next;
+        free(medicacao);
+        return;
+    }
 }
 
-// Função para adicionar novo medicamento ao estoque
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                          FRONT-END  -  Função para adicionar novo medicamento ao estoque.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
@@ -499,9 +574,6 @@ void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
                 int input;
                 scanf("%d", &input);
                 if(input == 0){
-                    menuPrincipal(contMenuPrincipal, l);
-                }
-                else{
                     menuPrincipal(contMenuPrincipal, l);
                 }
                 break;
@@ -542,7 +614,7 @@ void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
         scanf("%s", tipoMed);
         printf("\n\n");
 
-        inserirRemedio(l, nome_med, preco, quant_estoque, exigencia_receita, tipoMed);
+        inserirMedicamento(l, nome_med, preco, quant_estoque, exigencia_receita, tipoMed);
 
         system("clear");
         printf("\n\t\t--> Novo medicamento inserido em estoque com sucesso!! <--\n\n\n\n");
@@ -560,18 +632,16 @@ void adicionarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1])
         else if(input == 0){
             menuPrincipal(contMenuPrincipal, l);
         }
-        else{
-            menuPrincipal(contMenuPrincipal, l);
-        }
     }
 }
 
-// Função para alterar dados de um medicamento já existente no estoque
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                  FRONT-END  -  Função para alterar dados de um medicamento já existente no estoque.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
     int aux = 0; // variável auxiliar usada pra impedir que a função tente acessar um local de memória não alocado
-    int sucesso = 0; // variável de controle
 
     while(tempTipo != NULL){
         while(tempMed != NULL){
@@ -637,7 +707,7 @@ void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
                 }
                 else if(campo == 5){
                     system("clear");
-                    printf("Por favor, digite o novo tipo do medicamento: ");
+                    printf("Por favor, digite o novo tipo do medicamento:\n\n");
                     printf("--> ");
                     char tipoMed[max+1];
                     scanf("%s", tipoMed);
@@ -662,11 +732,6 @@ void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
                 else if(campo == 0){
                     menuPrincipal(contMenuPrincipal, l);
                 }
-                else{
-                    // digitou opção inválida!!
-                    alterarMedicamento(l, contMenuPrincipal, nome_med);
-                    // ajeitar isso aqui direitinho depois!!!!!!!!!!!!!!!!!!
-                }
             }
             tempMed = tempMed->next;
         }
@@ -678,27 +743,32 @@ void alterarMedicamento(lista* l, int contMenuPrincipal, char nome_med[max+1]){
 
     if(aux == 0){
         system("clear");
-        printf("\n\t--> MEDICAMENTO BUSCADO NÃO EXISTE EM ESTOQUE! <--\n\n\n");
-        printf("0 - Voltar ao Menu Principal\n\n");
+        printf("\n\t\t***MEDICAMENTO PESQUISADO NÃO EXISTE EM ESTOQUE***\n\n\n\n");
+        printf("Medicamento Pesquisado: %s\n", nome_med);
+        printf("-------------------------------\n\n\n");
+        printf("0 - Voltar ao Menu Principal\n");
+        printf("==============================\n");
+        printf("\nOpção: ");
         int input;
         scanf("%d", &input);
         if(input == 0){
             menuPrincipal(contMenuPrincipal, l);
         }
-        else{
-            menuPrincipal(contMenuPrincipal, l);
-        }
     }
 }
 
-// Função auxiliar da função alterarMedicamento para tela de sucesso
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                             FRONT-END  -  Função auxiliar da função alterarMedicamento para tela de sucesso.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void alterarMedicamentoSucesso(lista* l, int contMenuPrincipal, char nome_med[max+1]){
     system("clear");
-    printf("=============================================================================\n");
-    printf("\n\t\t-----Medicamento alterado com sucesso!!-----\n\n\n");
+    printf("\n\t\t--> Medicamento alterado com sucesso!! <--\n\n\n\n");
+    printf("Medicamento Alterado: %s\n", nome_med);
+    printf("---------------------------------\n\n\n");
     printf("2 - Ver informações do remédio alterado\n");
     printf("0 - Voltar ao Menu Principal\n");
-    printf("=============================================================================\n");
+    printf("=========================================\n");
+
     int input;
     scanf("%d", &input);
 
@@ -708,31 +778,49 @@ void alterarMedicamentoSucesso(lista* l, int contMenuPrincipal, char nome_med[ma
     else if(input == 0){
         menuPrincipal(contMenuPrincipal, l);
     }
-    else{
-        menuPrincipal(contMenuPrincipal, l);
-    }
 }
 
-// Função auxiliar da função alterarMedicamento usada para retirar medicamento duplicado em dois tipos diferentes!!
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                 BACK-END  -  Função auxiliar da função alterarMedicamento usada para retirar medicamento duplicado em dois tipos diferentes (duas listas diferentes).
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void retirarDuplicata(lista* l, char tipoMed[max+1], char nome_med[max+1]){
     tipo* tempTipo = l->inicio_listaTipo;
     med* tempMed = tempTipo->inicio_lista_med;
+    med* auxMed;
 
     while(tempTipo != NULL){
         if(strcmp(tempTipo->tip, tipoMed) == 0){
+            if(strcmp(tempTipo->inicio_lista_med->nome_med, nome_med) == 0){
+                if(tempTipo->inicio_lista_med->next == NULL){
+                    tempTipo->inicio_lista_med = NULL;
+                    return;
+                }
+                else{
+                    auxMed = tempTipo->inicio_lista_med;
+                    tempTipo->inicio_lista_med = tempTipo->inicio_lista_med->next; // THIS
+                    auxMed->next = NULL;
+                    return;
+                }
+            }
             while(tempMed != NULL){
                 if(strcmp(tempMed->next->nome_med, nome_med) == 0){
+                    auxMed = tempMed->next;
                     tempMed->next = tempMed->next->next;
+                    auxMed->next = NULL;
                     return;
                 }
                 tempMed = tempMed->next;
             }
         }
         tempTipo = tempTipo->next;
+        if(tempTipo == NULL) break;
+        tempMed = tempTipo->inicio_lista_med;
     }
 }
 
-// Função para desalocar memória
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                BACK-END  -  Função para desalocar memória.
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void liberaLista(lista* l){
     if(l->inicio_listaTipo == NULL){
         return;
@@ -757,3 +845,11 @@ void liberaLista(lista* l){
 
     free(l);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                 Fim do programa!!
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                       Desenvolvedor: Matheus Diniz Alencar
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
